@@ -1,306 +1,75 @@
-YOLO26n-Seg: Real-Time Instance Segmentation
+# Video Segmentation with YOLO26
 
-"Python" (https://img.shields.io/badge/Python-3.9+-blue.svg)
-"PyTorch" (https://img.shields.io/badge/PyTorch-2.x-red.svg)
-"License" (https://img.shields.io/badge/License-MIT-green.svg)
+Real-time instance segmentation on video using the Ultralytics YOLO26 segmentation model — detects and masks objects frame-by-frame and saves the annotated output.
 
-Overview
+## Features
 
-YOLO26n-Seg is a lightweight and efficient instance segmentation model designed for real-time computer vision applications. It combines object detection and pixel-level segmentation, enabling precise identification and localization of objects within images and video streams.
+- Instance segmentation using the pretrained [`yolo26n-seg`] model from Ultralytics
+- Live preview window while processing (`show=True`)
+- Annotated output automatically saved to disk (`save=True`)
+- Minimal setup — no custom training required to get started
 
-The model is optimized for edge devices, embedded systems, and resource-constrained environments while maintaining competitive segmentation accuracy and fast inference speeds.
+## Requirements
 
-Typical applications include:
+- Python 3.9+
+- A video file to run inference on
 
-- Medical image segmentation
-- Industrial inspection
-- Autonomous robotics
-- Smart surveillance
-- Agriculture monitoring
-- Traffic analysis
-- Retail analytics
-- Sports analytics
+Install dependencies:
 
----
-
-Features
-
-- Real-time instance segmentation
-- Lightweight nano architecture
-- High-speed inference
-- GPU and CPU support
-- Video stream processing
-- Image batch inference
-- Easy integration with Python applications
-- Compatible with OpenCV workflows
-- ONNX export support
-- Edge deployment ready
-
----
-
-Model Information
-
-Property| Value
-Model| YOLO26n-Seg
-Task| Instance Segmentation
-Framework| PyTorch
-Input Size| 640×640 (default)
-Output| Bounding Boxes + Segmentation Masks
-Deployment| CPU, GPU, Edge Devices
-Format| ".pt"
-
----
-
-Installation
-
-Clone Repository
-
-git clone https://github.com/yourusername/yolo26n-seg.git
-cd yolo26n-seg
-
-Create Virtual Environment
-
-python -m venv venv
-
-Linux/macOS:
-
-source venv/bin/activate
-
-Windows:
-
-venv\Scripts\activate
-
-Install Dependencies
-
+```bash
 pip install -r requirements.txt
+```
 
----
+## Setup
 
-Requirements
+1. **Clone the repository**
 
-ultralytics
-torch
-torchvision
-opencv-python
-numpy
-supervision
+   ```bash
+   git clone https://github.com/<your-username>/<your-repo>.git
+   cd <your-repo>
+   ```
 
-Install manually:
+2. **Add your video**
 
-pip install ultralytics torch torchvision opencv-python numpy supervision
+   Place your input video in a `videos/` folder (or anywhere you like), then update the `VIDEO_SOURCE` path in `segmentation.py`.
 
----
+3. **Run**
 
-Quick Start
+   ```bash
+   python segmentation.py
+   ```
 
-Image Segmentation
+   The model weights (`yolo26n-seg.pt`) will be downloaded automatically by Ultralytics on first run if not already present.
 
-from ultralytics import YOLO
+## Output
 
-model = YOLO("yolo26n-seg.pt")
+Annotated results are saved under `runs/segment/predict/` by default (Ultralytics' standard output convention), including the processed video with segmentation masks drawn on each frame.
 
-results = model("image.jpg")
+## Configuration
 
-results[0].show()
+| Setting | Location | Description |
+|---|---|---|
+| `"yolo26n-seg.pt"` | `YOLO(...)` call | Pretrained model variant — swap for `yolo26s-seg.pt`, `yolo26m-seg.pt`, etc. for higher accuracy at the cost of speed |
+| `VIDEO_SOURCE` | Top of script | Path to your input video, or `0` for a live webcam feed |
+| `show=True` | `model.predict(...)` | Set to `False` to disable the live preview window (useful for headless/server runs) |
+| `save=True` | `model.predict(...)` | Set to `False` if you don't want the annotated output saved to disk |
 
----
+## Project Structure
 
-Save Results
+```
+.
+├── segmentation.py       # Main script
+├── requirements.txt      # Python dependencies
+├── .gitignore
+├── videos/               # (not tracked) input videos go here
+└── runs/                 # (not tracked) Ultralytics output directory
+```
 
-from ultralytics import YOLO
+## Known Limitations
 
-model = YOLO("yolo26n-seg.pt")
+- Model weights are auto-downloaded on first run, which requires an internet connection.
+- Larger model variants (`s`/`m`/`l`) will be significantly slower without a GPU.
 
-results = model("image.jpg", save=True)
+## License
 
-Output will be stored in:
-
-runs/segment/predict/
-
----
-
-Video Inference
-
-from ultralytics import YOLO
-
-model = YOLO("yolo26n-seg.pt")
-
-results = model.predict(
-    source="video.mp4",
-    save=True
-)
-
----
-
-Webcam Segmentation
-
-from ultralytics import YOLO
-
-model = YOLO("yolo26n-seg.pt")
-
-model.predict(
-    source=0,
-    show=True
-)
-
----
-
-Access Segmentation Masks
-
-from ultralytics import YOLO
-
-model = YOLO("yolo26n-seg.pt")
-
-results = model("image.jpg")
-
-masks = results[0].masks
-
-if masks is not None:
-    print(masks.data.shape)
-
----
-
-Access Bounding Boxes
-
-from ultralytics import YOLO
-
-model = YOLO("yolo26n-seg.pt")
-
-results = model("image.jpg")
-
-boxes = results[0].boxes
-
-for box in boxes:
-    print(box.xyxy)
-
----
-
-Real-Time OpenCV Integration
-
-import cv2
-from ultralytics import YOLO
-
-model = YOLO("yolo26n-seg.pt")
-
-cap = cv2.VideoCapture(0)
-
-while True:
-    ret, frame = cap.read()
-
-    if not ret:
-        break
-
-    results = model(frame)
-
-    annotated = results[0].plot()
-
-    cv2.imshow("YOLO26n-Seg", annotated)
-
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-
----
-
-Training
-
-Train on a custom dataset:
-
-yolo segment train \
-    model=yolo26n-seg.pt \
-    data=data.yaml \
-    epochs=100 \
-    imgsz=640
-
-Validation
-
-yolo segment val \
-    model=runs/segment/train/weights/best.pt \
-    data=data.yaml
-
----
-
-Export Model
-
-ONNX
-
-yolo export \
-    model=yolo26n-seg.pt \
-    format=onnx
-
-TensorRT
-
-yolo export \
-    model=yolo26n-seg.pt \
-    format=engine
-
-OpenVINO
-
-yolo export \
-    model=yolo26n-seg.pt \
-    format=openvino
-
----
-
-Performance Considerations
-
-For maximum performance:
-
-- Use CUDA-enabled GPUs.
-- Increase batch size when memory allows.
-- Use TensorRT for deployment.
-- Use FP16 inference.
-- Resize inputs to match training resolution.
-- Avoid unnecessary image conversions.
-
----
-
-Example Applications
-
-Medical Imaging
-
-- Organ segmentation
-- Tumor localization
-- Surgical assistance
-
-Agriculture
-
-- Crop segmentation
-- Fruit counting
-- Disease monitoring
-
-Industrial Inspection
-
-- Defect detection
-- Product quality assessment
-- Assembly verification
-
-Smart Cities
-
-- Vehicle segmentation
-- Traffic monitoring
-- Pedestrian analysis
-
-
-License
-
-This project is distributed under the MIT License.
-
-See the LICENSE file for details.
-
----
-
-Acknowledgements
-
-Special thanks to:
-
-- Ultralytics
-- PyTorch Team
-- OpenCV Community
-- Open Source Contributors
-
-Their tools and frameworks make modern computer vision development accessible and efficient.
-
---
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
